@@ -24,6 +24,7 @@ from .ImageNet_graph_operations import get_leaves, get_spanning_leaves
 import torch
 import logging
 import collections
+import random
 MAX_SPANNING_LEAVES_ELIGIBLE = 392
 
 
@@ -238,6 +239,7 @@ class EpisodeSampler(object):
     skipped_classes = []
     
     for class_id in self.class_set:
+      # breakpoint()
       n_examples = len(dataset_spec["images_per_class"][class_id])
 
       if n_examples < self.min_examples_in_class:
@@ -422,6 +424,10 @@ class EpisodeSampler(object):
       episode_classes_rel = [
           class_id - _get_split_offset(self.split) for class_id in class_ids
       ]
+
+    elif self.dataset_spec["name"] == "EuroSAT":
+      episode_classes_rel = self.class_set
+
     else:
       if self.num_ways is not None:
           num_ways = self.num_ways
@@ -507,6 +513,7 @@ class EpisodeSampler(object):
           all_selected_files = self._rng.choice(self.dataset_spec["images_per_class"][self.class_set[cid]],
                                                 total_num_per_class[i], False)
 
+        # breakpoint()
         for file_ in all_selected_files[total_num_per_class[i]-num_query:]:
             images["query"].append(file_)
             labels["query"].append(torch.tensor([in_task_class_id]))
@@ -608,9 +615,54 @@ class BatchSampler(object):
 
 
     
+class SequentialSampler(object):
+  """
+  Generates sequential samples.
+  """
 
+  def __init__(self, seed, dataset_spec, split, finetuning):
+    self._rng = np.random.RandomState(seed)
 
+    self.dataset_spec = dataset_spec
+    self.split = split
+    self.finetuning = finetuning
+    # self.class_set = get_classes(self.split, self.dataset_spec["num_classes_per_split"])
+    self.class_set = list(range(self.dataset_spec['num_classes_per_split'][Split.TRAIN]))
 
+    self.all_file_path = []
+    self.all_labels = []
 
+    if self.finetuning:
+      for class_id in self.class_set:
+        images_per_class = dataset_spec["images_per_class"][class_id]
+        self.all_file_path.extend(images_per_class)
+        self.all_labels.extend([class_id] * len(images_per_class))
+    
+    else:
+      for class_id in self.class_set:
+        images_per_class = dataspec_spec["images_per_class"][class_id]
+        images_per_class = random.sample(images_per_class, int(len(images_per_class) * 0.2))
+        self.all_file_path.extend(images_per_class)
+        self.all_labels.extend([class_id] * len(images_per_class))
+    
+    self.length = len(self.all_file_path)
+    self.init()
+  
+  def init(self):
+    self.batch_id = 0
 
+  def sample_batch(self, batch_size, shuffle=False):
+    if self.batch_id * batch_size >= self.length:
+      self.init()
+    
+    # but unlike BatchSampler, we won't shuffle.
+    
+    file_paths = self.all_file_path[self.batch_id * batch_size : min(self.length, (self.batch_id + 1) * batch_size)]
+    labels = torch.tensor(self.all_labels[self.batch_id * batch_size : min(self.length, (self.batch_id + 1) * batch_size)])
 
+    images = []
+    for file_ in file_paths:
+      images.append(file_)
+
+    self.batch_id += 1
+    return images, labels

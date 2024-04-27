@@ -16,6 +16,7 @@ all_roots["MNIST"] = "PATH-TO-mnist" #10
 all_roots["CIFAR10"] = "PATH-TO-cifar10" #11
 all_roots["CIFAR100"] = "PATH-TO-cifar100" #12
 all_roots["miniImageNet"] = "PATH-TO-miniImageNet" #13
+all_roots["EuroSAT"] = "/deep/u/jihunwang/CloserLookAgainFewShot/datasets/EuroSAT" #14
 
 Data = {}
 
@@ -31,8 +32,8 @@ roots = list(all_roots.values())
 Data["DATA"]["VALID"] = {}
 
 
-Data["DATA"]["VALID"]["DATASET_ROOTS"] = [roots[2]]
-Data["DATA"]["VALID"]["DATASET_NAMES"] = [names[2]]
+Data["DATA"]["VALID"]["DATASET_ROOTS"] = [roots[14]]
+Data["DATA"]["VALID"]["DATASET_NAMES"] = [names[14]]
 
 
 Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"] = {}
@@ -43,15 +44,16 @@ Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["MAX_NUM_QUERY"] = 15
 Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["USE_DAG_HIERARCHY"] = False
 Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["MIN_EXAMPLES_IN_CLASS"] = Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["NUM_SUPPORT"]+Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["NUM_QUERY"]
 Data["DATA"]["VALID"]["BATCH_SIZE"] = 8
-Data["OUTPUT"] = "../new_metadataset_result"
-Data["MODEL"] = {}
+Data["DATA"]["VALID"]["SAMPLING_FREQUENCY"] = [1.]
+# Data["DATA"]["VALID"]["FINETUNING"] = True
 
-Data["MODEL"]["NAME"] = "evaluation"
-Data["GPU_ID"] = 2
+Data["OUTPUT"] = "/deep/u/mahmedc/CloserLookAgainFewShot/eurosat_search_result"
+Data["MODEL"] = {}
+Data["GPU_ID"] = 0
 
 # 1 if use sequential sampling in the original false Meta-Dataset sampling
 # 1 used to re-implement the results in the ICML 2023 paper; 0, however, is recommended
-Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["SEQUENTIAL_SAMPLING"] = 1
+Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["SEQUENTIAL_SAMPLING"] = 0
 
 Data["AUG"] = {}
 
@@ -68,14 +70,14 @@ Data["AUG"]["STD"] = [0.2726, 0.2634, 0.2794]
 # Data["DATA"]["IMG_SIZE"] = 224
 
 # miniImageNet
-Data["DATA"]["IMG_SIZE"] = 84
+Data["DATA"]["IMG_SIZE"] = 224
 
-Data["MODEL"]["BACKBONE"] = 'resnet12'
-Data["MODEL"]["PRETRAINED"] = '../pretrained_models/ce_miniImageNet_res12.ckpt'# for example
+Data["MODEL"]["BACKBONE"] = 'clip'
+# Data["MODEL"]["PRETRAINED"] = '../pretrained_models/ce_miniImageNet_res12.ckpt'# for example
 
 Data["DATA"]["NUM_WORKERS"] = 8
 
-Data["AUG"]["TEST_CROP"] = True
+Data["AUG"]["TEST_CROP"] = False
 
 Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["NUM_TASKS_PER_EPOCH"] = 50
 
@@ -83,6 +85,7 @@ Data["DATA"]["VALID"]["EPISODE_DESCR_CONFIG"]["NUM_TASKS_PER_EPOCH"] = 50
 # some examples of gradient-based methods.
 Data["MODEL"]["TYPE"] = "fewshot_finetune"
 Data["MODEL"]["CLASSIFIER"] = "finetune"
+Data["MODEL"]["NAME"] = "EuroSAT_CLIP"
 # Data["MODEL"]["CLASSIFIER"] = "eTT"
 
 # Data["MODEL"]["CLASSIFIER_PARAMETERS"] = [100,100,100,0.02,0.1,False,False,"fc"]# finetune_batchsize,query_feedingbatchsize,epoch,backbone_lr,classifer_lr,use_alpha,use_beta, mode
@@ -103,5 +106,5 @@ Data["SEARCH_HYPERPARAMETERS"]["EPOCH_RANGE"] = [10,20,30]
 
 if not os.path.exists('./configs/search'):
    os.makedirs('./configs/search')
-with open('./configs/search/finetune_res12_CE.yaml', 'w') as f:
+with open('./configs/search/eurosat_search_clip.yaml', 'w') as f:
    yaml.dump(data=Data, stream=f)

@@ -6,6 +6,7 @@ class Clip(nn.Module):
         super().__init__()
         self.model, _ = clip.load(name)
         self.model = self.model.float()
+        self.outdim = 512
 
     def forward(self, x):
         return self.model.encode_image(x)

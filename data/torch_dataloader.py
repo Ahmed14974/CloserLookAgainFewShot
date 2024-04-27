@@ -96,6 +96,9 @@ class TorchDataset(Dataset):
                                                  path_to_is_a, 
                                                  path_to_num_leaf_images,
                                                  train_split_only))
+            elif dataset_name == "EuroSAT":
+                # breakpoint()
+                dataset_specs.append(create_spec(dataset_name, dataset_roots[i]))
             else:
                 dataset_specs.append(create_spec(dataset_name, dataset_roots[i]))
 

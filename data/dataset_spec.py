@@ -38,6 +38,9 @@ from .ImageNet_graph_operations import *
 import json
 import operator
 
+import pandas as pd
+import random
+
 # The seed is fixed, in order to ensure reproducibility of the split generation,
 # exactly matching the original Meta-Dataset code.
 SEED = 22
@@ -130,7 +133,7 @@ def gen_sequential_split_inds(num_train_classes, num_valid_classes, num_test_cla
   test_inds = list(range(num_train_classes+num_valid_classes, num_train_classes+num_valid_classes+num_test_classes))
   return train_inds, valid_inds, test_inds
 
-def create_spec(dataset_name, root, path_to_words=None, path_to_is_a = None, path_to_num_leaf_images = None, train_split_only = False):
+def create_spec(dataset_name, root, finetuning=False, path_to_words=None, path_to_is_a = None, path_to_num_leaf_images = None, train_split_only = False):
   """
   create a dataset specification.
   """
@@ -162,6 +165,16 @@ def create_spec(dataset_name, root, path_to_words=None, path_to_is_a = None, pat
     return create_cifar100_spec(root)
   elif dataset_name == "miniImageNet":
     return create_miniImageNet_spec(root)
+  elif dataset_name == "EuroSAT":
+    return create_EuroSAT_spec(root, finetuning)
+  elif dataset_name == 'CheXpert':
+    return create_CheXpert_spec(root, num_shot_per_class, finetuning)
+  elif dataset_name == 'DrugOOD':
+    return create_DrugOOD_spec(root, num_shot_per_class, finetuning)
+  elif dataset_name == 'TerraIncognita':
+    return create_terra_spec(root, num_shot_per_class, finetuning)
+  elif dataset_name == 'UCMerced':
+    return create_UCMerced_spec(root, num_shot_per_class, finetuning)
 
 
 def create_DTD_spec(root):
@@ -1232,12 +1245,14 @@ def get_classes(split, classes_per_split):
   """
 
   num_classes = classes_per_split[split]
+  # breakpoint()
 
   # Find the starting index of classes for the given split.
   if split == Split.TRAIN:
     offset = 0
   elif split == Split.VALID:
-    offset = classes_per_split[Split.TRAIN]
+    # offset = classes_per_split[Split.TRAIN]
+    offset = 0
   elif split == Split.TEST:
     offset = (
         classes_per_split[Split.TRAIN] +
@@ -1291,3 +1306,284 @@ def get_total_images_per_class(data_spec, class_id=None, pool=None):
   return num_images
 
 
+
+def create_EuroSAT_spec(root, finetuning=False):
+  """
+  Return a dataset specification that includes:
+    name: The name of the dataset.
+    num_classes_per_split: number of images per split.
+    images_per_class: a dictionary containing all paths of images in each class.
+    id2name: a dictionary mapping class id to real name.
+  """
+  NUM_TRAIN_CLASSES = 10
+  NUM_VALID_CLASSES = 10
+  NUM_TEST_CLASSES = 10
+  assert NUM_TRAIN_CLASSES == NUM_VALID_CLASSES == NUM_TEST_CLASSES
+  NUM_TOTAL_CLASSES = NUM_TRAIN_CLASSES
+
+  class_names = ['AnnualCrop', 'Forest', 'HerbaceousVegetation', 'Highway', 'Industrial', 'Pasture', 'PermanentCrop', 'Residential', 'River', 'SeaLake']
+  assert len(class_names) == NUM_TOTAL_CLASSES
+
+  dataset_specification = {}
+  dataset_specification['name'] = 'EuroSAT'
+  dataset_specification['num_classes_per_split'] = {
+    Split.TRAIN: NUM_TRAIN_CLASSES,
+    Split.VALID: NUM_TRAIN_CLASSES,
+    Split.TEST: NUM_TRAIN_CLASSES
+  }
+
+  dataset_specification['id2name'] = {
+    class_id: class_name for class_id, class_name in enumerate(class_names)
+  }
+  class_2_idx = dataset_specification['id2name']
+
+  dataset_specification['images_per_class'] = {}
+  exclude_list = ['AnnualCrop_1209.jpg']
+
+  demo_df = pd.read_pickle(f'{root}/eurosat_demo_sampled.pkl')
+  test_df = pd.read_pickle(f'{root}/eurosat_test_sampled.pkl')
+
+  for class_id, class_name in enumerate(class_names):
+    num_cases_class = 0
+    demo_examples = []
+    for j in demo_df[demo_df[class_name] == 1].itertuples():
+      # if (not finetuning) and num_cases_class == num_shot_per_class:
+      #   break
+      if j.Index in exclude_list:
+        continue
+      demo_examples.append(f'{root}/images/{j.Index}')
+      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
+      num_cases_class += 1
+    if finetuning:
+      # dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.8))
+      dataset_specification['images_per_class'][class_id] = demo_examples
+    else:
+      dataset_specification['images_per_class'][class_id] = demo_examples
+  
+  return dataset_specification
+
+
+def create_CheXpert_spec(root, num_shot_per_class, finetuning=False):
+  """
+  Return a dataset specification that includes:
+    name: The name of the dataset.
+    num_classes_per_split: number of images per split.
+    images_per_class: a dictionary containing all paths of images in each class.
+    id2name: a dictionary mapping class id to real name.
+  """
+  NUM_TRAIN_CLASSES = 5
+  NUM_VALID_CLASSES = 5
+  NUM_TEST_CLASSES = 5
+  assert NUM_TRAIN_CLASSES == NUM_VALID_CLASSES == NUM_TEST_CLASSES
+  NUM_TOTAL_CLASSES = NUM_TRAIN_CLASSES
+
+  class_names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Pleural Effusion']
+  assert len(class_names) == NUM_TOTAL_CLASSES
+
+  dataset_specification = {}
+  dataset_specification['name'] = 'CheXpert'
+  dataset_specification['num_classes_per_split'] = {
+    Split.TRAIN: NUM_TRAIN_CLASSES,
+    Split.VALID: NUM_TRAIN_CLASSES,
+    Split.TEST: NUM_TRAIN_CLASSES
+  }
+
+  dataset_specification['id2name'] = {
+    class_id: class_name for class_id, class_name in enumerate(class_names)
+  }
+  class_2_idx = dataset_specification['id2name']
+
+  dataset_specification['images_per_class'] = {}
+  exclude_list = []
+
+  demo_df = pd.read_pickle(f'{root}/chexpert_demo_sampled.pkl')
+  test_df = pd.read_pickle(f'{root}/chexpert_test_sampled.pkl')
+
+  for class_id, class_name in enumerate(class_names):
+    num_cases_class = 0
+    demo_examples = []
+    for j in demo_df[demo_df[class_name] == 1].itertuples():
+      if (not finetuning) and num_cases_class == num_shot_per_class:
+        break
+      if j.Index in exclude_list:
+        continue
+      demo_examples.append(f'{root}/images/{j.Index}')
+      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
+      num_cases_class += 1
+    if finetuning:
+      dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.8))
+    else:
+      dataset_specification['images_per_class'][class_id] = demo_examples
+  
+  return dataset_specification
+
+
+
+def create_DrugOOD_spec(root, num_shot_per_class, finetuning=False):
+  """
+  Return a dataset specification that includes:
+    name: The name of the dataset.
+    num_classes_per_split: number of images per split.
+    images_per_class: a dictionary containing all paths of images in each class.
+    id2name: a dictionary mapping class id to real name.
+  """
+  NUM_TRAIN_CLASSES = 2
+  NUM_VALID_CLASSES = 2
+  NUM_TEST_CLASSES = 2
+  assert NUM_TRAIN_CLASSES == NUM_VALID_CLASSES == NUM_TEST_CLASSES
+  NUM_TOTAL_CLASSES = NUM_TRAIN_CLASSES
+
+  class_names = ['active', 'inactive']
+  assert len(class_names) == NUM_TOTAL_CLASSES
+
+  dataset_specification = {}
+  dataset_specification['name'] = 'DrugOOD'
+  dataset_specification['num_classes_per_split'] = {
+    Split.TRAIN: NUM_TRAIN_CLASSES,
+    Split.VALID: NUM_TRAIN_CLASSES,
+    Split.TEST: NUM_TRAIN_CLASSES
+  }
+
+  dataset_specification['id2name'] = {
+    class_id: class_name for class_id, class_name in enumerate(class_names)
+  }
+  class_2_idx = dataset_specification['id2name']
+
+  dataset_specification['images_per_class'] = {}
+  exclude_list = []
+
+  demo_df = pd.read_pickle(f'{root}/drugood_demo_sampled_final.pkl')
+  test_df = pd.read_pickle(f'{root}/drugood_test_sampled_final.pkl')
+
+  for class_id, class_name in enumerate(class_names):
+    num_cases_class = 0
+    demo_examples = []
+    for j in demo_df[demo_df[class_name] == 1].itertuples():
+      if (not finetuning) and num_cases_class == num_shot_per_class:
+        break
+      if j.Index in exclude_list:
+        continue
+      demo_examples.append(f'{root}/images/{j.Index}')
+      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
+      num_cases_class += 1
+    if finetuning:
+      dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.2))
+    else:
+      dataset_specification['images_per_class'][class_id] = demo_examples
+  
+  return dataset_specification
+
+
+
+def create_terra_spec(root, num_shot_per_class, finetuning=False):
+  """
+  Return a dataset specification that includes:
+    name: The name of the dataset.
+    num_classes_per_split: number of images per split.
+    images_per_class: a dictionary containing all paths of images in each class.
+    id2name: a dictionary mapping class id to real name.
+  """
+  NUM_TRAIN_CLASSES = 9
+  NUM_VALID_CLASSES = 9
+  NUM_TEST_CLASSES = 9
+  assert NUM_TRAIN_CLASSES == NUM_VALID_CLASSES == NUM_TEST_CLASSES
+  NUM_TOTAL_CLASSES = NUM_TRAIN_CLASSES
+
+  class_names = ['bird', 'bobcat', 'cat', 'coyote', 'dog', 'opossum', 'rabbit', 'raccoon', 'squirrel']
+  assert len(class_names) == NUM_TOTAL_CLASSES
+
+  dataset_specification = {}
+  dataset_specification['name'] = 'TerraIncognita'
+  dataset_specification['num_classes_per_split'] = {
+    Split.TRAIN: NUM_TRAIN_CLASSES,
+    Split.VALID: NUM_TRAIN_CLASSES,
+    Split.TEST: NUM_TRAIN_CLASSES
+  }
+
+  dataset_specification['id2name'] = {
+    class_id: class_name for class_id, class_name in enumerate(class_names)
+  }
+  class_2_idx = dataset_specification['id2name']
+
+  dataset_specification['images_per_class'] = {}
+  exclude_list = []
+
+  demo_df = pd.read_pickle(f'{root}/terra_incognita_demo_no_domain.pkl')
+  test_df = pd.read_pickle(f'{root}/terra_incognita_test_select_domain.pkl')
+
+  for class_id, class_name in enumerate(class_names):
+    num_cases_class = 0
+    demo_examples = []
+    for j in demo_df[demo_df[class_name] == 1].itertuples():
+      if (not finetuning) and num_cases_class == num_shot_per_class:
+        break
+      if j.Index in exclude_list:
+        continue
+      demo_examples.append(f'{root}/images/{j.Index}')
+      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
+      num_cases_class += 1
+    if finetuning:
+      dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.2))
+    else:
+      dataset_specification['images_per_class'][class_id] = demo_examples
+  
+  return dataset_specification
+
+
+
+def create_UCMerced_spec(root, num_shot_per_class, finetuning=False):
+  """
+  Return a dataset specification that includes:
+    name: The name of the dataset.
+    num_classes_per_split: number of images per split.
+    images_per_class: a dictionary containing all paths of images in each class.
+    id2name: a dictionary mapping class id to real name.
+  """
+  NUM_TRAIN_CLASSES = 21
+  NUM_VALID_CLASSES = 21
+  NUM_TEST_CLASSES = 21
+  assert NUM_TRAIN_CLASSES == NUM_VALID_CLASSES == NUM_TEST_CLASSES
+  NUM_TOTAL_CLASSES = NUM_TRAIN_CLASSES
+
+  class_names = ['agricultural', 'airplane', 'baseballdiamond', 'beach', 'buildings',
+          'chaparral', 'denseresidential', 'forest', 'freeway', 'golfcourse',
+          'harbor', 'intersection', 'mediumresidential', 'mobilehomepark', 'overpass',
+          'parkinglot', 'river', 'runway', 'sparseresidential', 'storagetanks', 'tenniscourt']
+  assert len(class_names) == NUM_TOTAL_CLASSES
+
+  dataset_specification = {}
+  dataset_specification['name'] = 'UCMerced'
+  dataset_specification['num_classes_per_split'] = {
+    Split.TRAIN: NUM_TRAIN_CLASSES,
+    Split.VALID: NUM_TRAIN_CLASSES,
+    Split.TEST: NUM_TRAIN_CLASSES
+  }
+
+  dataset_specification['id2name'] = {
+    class_id: class_name for class_id, class_name in enumerate(class_names)
+  }
+  class_2_idx = dataset_specification['id2name']
+
+  dataset_specification['images_per_class'] = {}
+  exclude_list = []
+
+  demo_df = pd.read_pickle(f'{root}/UCMerced_demo.pkl')
+  test_df = pd.read_pickle(f'{root}/UCMerced_test.pkl')
+
+  for class_id, class_name in enumerate(class_names):
+    num_cases_class = 0
+    demo_examples = []
+    for j in demo_df[demo_df[class_name] == 1].itertuples():
+      if (not finetuning) and num_cases_class == num_shot_per_class:
+        break
+      if j.Index in exclude_list:
+        continue
+      demo_examples.append(f'{root}/images/{j.Index}')
+      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
+      num_cases_class += 1
+    if finetuning:
+      dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.2))
+    else:
+      dataset_specification['images_per_class'][class_id] = demo_examples
+  
+  return dataset_specification
