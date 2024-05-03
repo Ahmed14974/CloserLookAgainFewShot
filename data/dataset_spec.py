@@ -1343,12 +1343,15 @@ def create_EuroSAT_spec(root, finetuning=False):
   demo_df = pd.read_pickle(f'{root}/eurosat_demo_sampled.pkl')
   test_df = pd.read_pickle(f'{root}/eurosat_test_sampled.pkl')
 
+  num_shot_per_class = 99
+
   for class_id, class_name in enumerate(class_names):
     num_cases_class = 0
     demo_examples = []
     for j in demo_df[demo_df[class_name] == 1].itertuples():
-      # if (not finetuning) and num_cases_class == num_shot_per_class:
-      #   break
+      if num_cases_class == num_shot_per_class:
+        break
+    
       if j.Index in exclude_list:
         continue
       demo_examples.append(f'{root}/images/{j.Index}')

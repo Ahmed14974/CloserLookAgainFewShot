@@ -162,6 +162,7 @@ class VisionTransformer(nn.Module):
                  drop_path_rate=0., norm_layer=nn.LayerNorm, **kwargs):
         super().__init__()
         self.num_features = self.embed_dim = embed_dim
+        self.outdim = 192
 
         self.patch_embed = PatchEmbed(
             img_size=img_size[0], patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim)
@@ -278,9 +279,11 @@ def vit_base(patch_size=16, **kwargs):
         qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
-def create_model(size = "small", patch_size=8):
+def create_model(size = "tiny", patch_size=16):
     print(size)
     if size == "small":
         return vit_small(patch_size)
+    elif size == "tiny":
+        return vit_tiny(patch_size)
     else:
         return vit_base(patch_size)
