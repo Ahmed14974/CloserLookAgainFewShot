@@ -40,15 +40,15 @@ _C.DATA.TRAIN = CN()
 # could be overwritten by command line argument.
 _C.DATA.TRAIN.BATCH_SIZE = 1
 
-# all training dataset names
+# # all training dataset names
 _C.DATA.TRAIN.DATASET_NAMES = ["ILSVRC"]
-# correponding dataset roots
+# # correponding dataset roots
 _C.DATA.TRAIN.DATASET_ROOTS = [""]
 
-# correponding sampling frequencies of each dataset
+# # correponding sampling frequencies of each dataset
 _C.DATA.TRAIN.SAMPLING_FREQUENCY = [1.]
 
-# whether to do episodic training
+# # whether to do episodic training
 _C.DATA.TRAIN.IS_EPISODIC = True
 
 
@@ -60,14 +60,14 @@ _C.DATA.TRAIN.IS_EPISODIC = True
 # the configuration for episodic training, ignored if non-episodic
 _C.DATA.TRAIN.EPISODE_DESCR_CONFIG = CN()
 
-# number of sampled tasks per epoch
+# # number of sampled tasks per epoch
 _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.NUM_TASKS_PER_EPOCH = 1000
 
 # Whether to use the original Meta-Dataset sampling, 1 for true and 0 for false
 # (This is a fault of the original implementation of
 # Meta-Dataset, and will influence results of ILSVRC, Aircraft, Traffic Signs, MSCOCO and Fungi. 
 # To understand the details, e.g., see https://github.com/google-research/meta-dataset/issues/54 for traffic signs)
-_C.DATA.TRAIN.EPISODE_DESCR_CONFIG.SEQUENTIAL_SAMPLING = 0
+_C.DATA.TRAIN.EPISODE_DESCR_CONFIG.SEQUENTIAL_SAMPLING = 1
 
 # The followings are for data sampling, strictly following the original Meta-Dataset settings.
 
@@ -98,8 +98,8 @@ _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SET_SIZE = 500
 _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SIZE_CONTRIB_PER_CLASS = 100
 # randomly decide contribution of each class to the support set
 # see Appendix of the Meta-Dataset paper for detail
-_C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
-_C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
+# _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
+# _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
 #========================================================================================
 
 
@@ -111,7 +111,7 @@ _C.DATA.TRAIN.EPISODE_DESCR_CONFIG.USE_BILEVEL_HIERARCHY =  False
 
 
 # whether to shuffle the data for non-episodic training
-_C.DATA.TRAIN.SHUFFLE = True    
+_C.DATA.TRAIN.SHUFFLE = False
 
 
 # Iterations per epoch for non-episodic training
@@ -137,17 +137,17 @@ _C.DATA.VALID.EPISODE_DESCR_CONFIG.NUM_WAYS = None
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.NUM_SUPPORT = None
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.NUM_QUERY = None
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.MIN_WAYS = 5
-_C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_WAYS_UPPER_BOUND = 50
+# _C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_WAYS_UPPER_BOUND = 50
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_NUM_QUERY = 10
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.MIN_EXAMPLES_IN_CLASS = 0
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SET_SIZE = 500
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SIZE_CONTRIB_PER_CLASS = 100
-_C.DATA.VALID.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
-_C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
+# _C.DATA.VALID.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
+# _C.DATA.VALID.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
 # only works for ImageNet
 _C.DATA.VALID.EPISODE_DESCR_CONFIG.USE_DAG_HIERARCHY = True
 # only works for Omniglot
-_C.DATA.VALID.EPISODE_DESCR_CONFIG.USE_BILEVEL_HIERARCHY =  False
+# _C.DATA.VALID.EPISODE_DESCR_CONFIG.USE_BILEVEL_HIERARCHY =  False
 
 
 _C.DATA.VALID.SHUFFLE = False
@@ -175,8 +175,8 @@ _C.DATA.TEST.EPISODE_DESCR_CONFIG.MAX_NUM_QUERY = 10
 _C.DATA.TEST.EPISODE_DESCR_CONFIG.MIN_EXAMPLES_IN_CLASS = 0
 _C.DATA.TEST.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SET_SIZE = 500
 _C.DATA.TEST.EPISODE_DESCR_CONFIG.MAX_SUPPORT_SIZE_CONTRIB_PER_CLASS = 100
-_C.DATA.TEST.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
-_C.DATA.TEST.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
+# _C.DATA.TEST.EPISODE_DESCR_CONFIG.MIN_LOG_WEIGHT = -0.69314718055994529
+# _C.DATA.TEST.EPISODE_DESCR_CONFIG.MAX_LOG_WEIGHT = 0.69314718055994529
 # only works for ImageNet
 _C.DATA.TEST.EPISODE_DESCR_CONFIG.USE_DAG_HIERARCHY = True
 # only works for Omniglot
@@ -298,7 +298,7 @@ _C.TRAIN.AUTO_RESUME = True
 # -----------------------------------------------------------------------------
 
 # training or testing
-_C.IS_TRAIN = 1
+_C.IS_TRAIN = 0
 # Used GPU ID
 _C.GPU_ID = 0
 # seed

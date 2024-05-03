@@ -216,15 +216,15 @@ class EpisodeSampler(object):
     self.num_support = episode_descr_config.NUM_SUPPORT
     self.num_query = episode_descr_config.NUM_QUERY
     self.min_ways = episode_descr_config.MIN_WAYS
-    self.max_ways_upper_bound = episode_descr_config.MAX_WAYS_UPPER_BOUND
+    # self.max_ways_upper_bound = episode_descr_config.MAX_WAYS_UPPER_BOUND
     self.max_num_query = episode_descr_config.MAX_NUM_QUERY
     self.max_support_set_size = episode_descr_config.MAX_SUPPORT_SET_SIZE
     self.max_support_size_contrib_per_class = episode_descr_config.MAX_SUPPORT_SIZE_CONTRIB_PER_CLASS
-    self.min_log_weight = episode_descr_config.MIN_LOG_WEIGHT
-    self.max_log_weight = episode_descr_config.MAX_LOG_WEIGHT
+    # self.min_log_weight = episode_descr_config.MIN_LOG_WEIGHT
+    # self.max_log_weight = episode_descr_config.MAX_LOG_WEIGHT
     self.min_examples_in_class = episode_descr_config.MIN_EXAMPLES_IN_CLASS
     self.use_dag_hierarchy = episode_descr_config.USE_DAG_HIERARCHY
-    self.use_bilevel_hierarchy = episode_descr_config.USE_BILEVEL_HIERARCHY
+    # self.use_bilevel_hierarchy = episode_descr_config.USE_BILEVEL_HIERARCHY
 
     # all class ids
     if dataset_spec["name"] == "Omniglot":
@@ -247,6 +247,7 @@ class EpisodeSampler(object):
       else:
         self._filtered_class_set.append(class_id)
     self.num_filtered_classes = len(self._filtered_class_set)
+    # breakpoint()
 
     if skipped_classes:
       logging.info(
