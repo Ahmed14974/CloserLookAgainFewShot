@@ -1334,7 +1334,7 @@ def create_EuroSAT_spec(root, finetuning=False):
 
   dataset_specification['id2name'] = {
     class_id: class_name for class_id, class_name in enumerate(class_names)
-  }
+  } # {0: 'AnnualCrop', 1: 'Forest', ...}
   class_2_idx = dataset_specification['id2name']
 
   dataset_specification['images_per_class'] = {}
@@ -1343,25 +1343,26 @@ def create_EuroSAT_spec(root, finetuning=False):
   demo_df = pd.read_pickle(f'{root}/eurosat_demo_sampled.pkl')
   test_df = pd.read_pickle(f'{root}/eurosat_test_sampled.pkl')
 
-  num_shot_per_class = 99
-
-  for class_id, class_name in enumerate(class_names):
-    num_cases_class = 0
-    demo_examples = []
-    for j in demo_df[demo_df[class_name] == 1].itertuples():
-      if num_cases_class == num_shot_per_class:
-        break
-    
-      if j.Index in exclude_list:
-        continue
-      demo_examples.append(f'{root}/images/{j.Index}')
-      # demo_examples.append((j.Index, class_names[class_2_idx[class_name]]))
-      num_cases_class += 1
-    if finetuning:
-      # dataset_specification['images_per_class'][class_id] = random.sample(demo_examples, int(len(demo_examples) * 0.8))
+  if split == Split.TRAIN or split == Split.VALID:
+    for class_id, class_name in enumerate(class_names):
+      num_cases_class = 0
+      demo_examples = []
+      for j in demo_df[demo_df[class_name] == 1].itertuples():
+        if j.Index in exclude_list:
+          continue
+        demo_examples.append(f'{root}/images/{j.Index}')
+        num_cases_class += 1
       dataset_specification['images_per_class'][class_id] = demo_examples
-    else:
-      dataset_specification['images_per_class'][class_id] = demo_examples
+  else:
+    for class_id, class_name in enumerate(class_names):
+      num_cases_class = 0
+      test_examples = []
+      for j in test_df[test_df[class_name] == 1].itertuples():
+        if j.Index in exclude_list:
+          continue
+        test_examples.append(f'{root}/images/{j.Index}')
+        num_cases_class += 1
+      dataset_specification['images_per_class'][class_id] = test_examples
   
   return dataset_specification
 
